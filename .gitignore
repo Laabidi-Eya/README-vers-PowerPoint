@@ -1,0 +1,26 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.python-version
+
+# Environnement virtuel
+.venv/
+venv/
+
+# Outputs générés
+output/
+
+# Sessions sauvegardées (contiennent des chemins locaux)
+sessions.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
