@@ -90,6 +90,31 @@ def _title_slide(prs, title_text, primary=DARK_BLUE, accent=ACCENT,
              align=PP_ALIGN.CENTER, font_name=title_font)
 
 
+def _optimal_layout(n_bullets: int, base_body_size: int):
+    """Adapt font size and spacing so bullets fill the available content area."""
+    # Content area: y=1.8" to y=7.3" (bottom margin 0.2") = 5.5" = 396pt
+    available_pt = 396.0
+    if n_bullets == 0:
+        return base_body_size, 16
+
+    max_size = 26   # never go above 26pt — readable and not oversized
+    min_size = 12   # never below 12pt
+
+    # Ideal height per bullet to fill the space evenly
+    ideal_per_bullet = available_pt / n_bullets
+
+    # Size ≈ 40% of ideal (rest goes to spacing + line leading)
+    size = int(ideal_per_bullet * 0.40)
+    size = max(min_size, min(max_size, size))
+
+    # Remaining space becomes spacing
+    line_h = size * 1.4
+    space = ideal_per_bullet - line_h
+    space = max(8.0, min(space, 60.0))
+
+    return size, int(space)
+
+
 def _content_slide(prs, title_text, bullets, primary=DARK_BLUE, accent=ACCENT,
                    bg_color=None, text_color=None, title_font="Calibri",
                    body_font="Calibri", title_size=28, body_size=17,
@@ -110,24 +135,27 @@ def _content_slide(prs, title_text, bullets, primary=DARK_BLUE, accent=ACCENT,
              title_text, title_size, bold=title_bold, color=title_color,
              align=PP_ALIGN.LEFT, font_name=title_font)
 
+    # Dynamic layout: adapt font size and spacing to number of bullets
+    eff_size, space_before = _optimal_layout(len(bullets), body_size)
+
     txBox2 = slide.shapes.add_textbox(Inches(0.45), Inches(1.8), Inches(9.1), Inches(5.3))
     tf2 = txBox2.text_frame
     tf2.word_wrap = True
 
     for i, bullet in enumerate(bullets):
         p = tf2.paragraphs[0] if i == 0 else tf2.add_paragraph()
-        p.space_before = Pt(8)
+        p.space_before = Pt(space_before if i > 0 else int(space_before * 0.5))
 
         dot = p.add_run()
         dot.text = bullet_char + "  "
-        dot.font.size = Pt(int(body_size * 0.65))
+        dot.font.size = Pt(int(eff_size * 0.65))
         dot.font.color.rgb = accent
         dot.font.name = body_font
         dot.font.bold = True
 
         run = p.add_run()
         run.text = bullet
-        run.font.size = Pt(body_size)
+        run.font.size = Pt(eff_size)
         run.font.bold = body_bold
         run.font.color.rgb = txt
         run.font.name = body_font
