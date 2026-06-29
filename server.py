@@ -1956,12 +1956,8 @@ HTML = """
     function _buildPreviewSlides(data) {
         var contentSlides = (data.slides_plan && data.slides_plan.slides) ? data.slides_plan.slides : [];
         var slides = [{type:'cover', title: (data.slides_plan && data.slides_plan.title) ? data.slides_plan.title : 'Aperçu'}];
-        var cd = data.chart_data;
-        contentSlides.forEach(function(s, i) {
+        contentSlides.forEach(function(s) {
             slides.push({type:'content', title:s.title, bullets:s.bullets});
-            if (cd && i === cd.slide_idx) {
-                slides.push({type:'chart', title: '📊 ' + (cd.title || 'Données'), chart: cd});
-            }
         });
         return slides;
     }
@@ -2016,50 +2012,7 @@ HTML = """
         var idx     = previewCurrentIndex;
 
         var html = '';
-        if (slide.type === 'chart') {
-            var cd = slide.chart;
-            var isPercent = cd.unit === '%';
-            var chartHtml = '';
-            if (isPercent) {
-                // Simple visual bar chart in HTML
-                var maxVal = Math.max.apply(null, cd.values);
-                chartHtml = cd.labels.map(function(lbl, i) {
-                    var pct = (cd.values[i] / maxVal * 100).toFixed(0);
-                    return '<div style="margin-bottom:10px;">'
-                        + '<div style="display:flex;justify-content:space-between;font-size:clamp(9px,1.1vw,12px);color:' + txt + ';margin-bottom:4px;">'
-                        + '<span style="max-width:65%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + _escHtml(lbl) + '</span>'
-                        + '<span style="font-weight:700;color:' + accent + ';">' + cd.values[i] + '%</span>'
-                        + '</div>'
-                        + '<div style="height:clamp(8px,1.2vw,14px);background:rgba(0,0,0,0.08);border-radius:20px;overflow:hidden;">'
-                        + '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,' + primary + ',' + accent + ');border-radius:20px;transition:width 0.6s ease;"></div>'
-                        + '</div>'
-                        + '</div>';
-                }).join('');
-            } else {
-                var maxVal2 = Math.max.apply(null, cd.values);
-                chartHtml = cd.labels.map(function(lbl, i) {
-                    var pct = (cd.values[i] / maxVal2 * 100).toFixed(0);
-                    return '<div style="margin-bottom:10px;display:flex;align-items:center;gap:8px;">'
-                        + '<span style="font-size:clamp(8px,1vw,11px);color:' + txt + ';min-width:35%;max-width:35%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + _escHtml(lbl) + '</span>'
-                        + '<div style="flex:1;height:clamp(10px,1.4vw,16px);background:rgba(0,0,0,0.08);border-radius:20px;overflow:hidden;">'
-                        + '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,' + primary + ',' + accent + ');border-radius:20px;"></div>'
-                        + '</div>'
-                        + '<span style="font-size:clamp(8px,1vw,11px);font-weight:700;color:' + accent + ';min-width:40px;text-align:right;">' + cd.values[i] + ' ' + cd.unit + '</span>'
-                        + '</div>';
-                }).join('');
-            }
-            html = '<div style="width:100%;aspect-ratio:10/7.5;background:' + bg + ';position:relative;border-radius:3px;box-shadow:0 12px 40px rgba(0,0,0,0.5);overflow:hidden;display:flex;flex-direction:column;">'
-                + '<div style="position:absolute;left:0;top:0;width:7px;height:100%;background:' + accent + ';z-index:2;"></div>'
-                + '<div style="background:' + primary + ';padding:12px 18px 12px 22px;flex-shrink:0;position:relative;">'
-                + '<div style="position:absolute;bottom:0;left:0;width:100%;height:3px;background:' + accent + ';"></div>'
-                + '<div style="font-size:8px;font-weight:700;color:rgba(204,221,255,0.55);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">SLIDE ' + (idx + 1) + '</div>'
-                + '<div style="font-size:clamp(13px,2vw,20px);font-weight:700;color:' + ttl + ';">📊 ' + _escHtml(cd.title || '') + '</div>'
-                + '</div>'
-                + '<div style="flex:1;padding:14px 22px;overflow:hidden;display:flex;flex-direction:column;justify-content:center;">'
-                + chartHtml
-                + '</div>'
-                + '</div>';
-        } else if (slide.type === 'cover') {
+        if (slide.type === 'cover') {
             var today = new Date().toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'});
             var logoHtml = (window._previewHasLogo && window._previewSessionId)
                 ? '<img src="/logo/' + window._previewSessionId + '" style="position:absolute;top:12px;right:14px;max-width:90px;max-height:55px;object-fit:contain;z-index:3;">'
@@ -2350,7 +2303,6 @@ async def generate(file: UploadFile = File(...), lang: str = Form("auto"), audie
                 "logo_path": logo_path, "design_params": {},
                 "output_path": zip_path, "is_zip": True,
                 "effective_colors": result_fr.get("effective_colors", {}),
-                "chart_data": result_fr.get("chart_data"),
                 "created_at": datetime.now().isoformat(),
             }
         else:
@@ -2362,7 +2314,6 @@ async def generate(file: UploadFile = File(...), lang: str = Form("auto"), audie
                 "logo_path": logo_path, "design_params": {},
                 "output_path": result["output_path"], "is_zip": False,
                 "effective_colors": result.get("effective_colors", {}),
-                "chart_data": result.get("chart_data"),
                 "created_at": datetime.now().isoformat(),
             }
 
@@ -2456,19 +2407,11 @@ def preview_slides(session_id: str):
         return JSONResponse({"error": "Session introuvable"}, status_code=404)
     logo_path = session.get("logo_path")
     has_logo = bool(logo_path and os.path.exists(logo_path))
-    chart_data = session.get("chart_data")
     return JSONResponse({
         "slides_plan": session.get("slides_plan", {}),
         "is_zip": session.get("is_zip", False),
         "colors": session.get("effective_colors", {}),
         "has_logo": has_logo,
-        "chart_data": {
-            "slide_idx": chart_data["slide_idx"],
-            "title": chart_data.get("title", ""),
-            "labels": chart_data.get("labels", []),
-            "values": chart_data.get("values", []),
-            "unit": chart_data.get("unit", ""),
-        } if chart_data else None,
     })
 
 
