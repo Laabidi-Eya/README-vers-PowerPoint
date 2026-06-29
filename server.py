@@ -1105,7 +1105,7 @@ HTML = """
                 <div class="chat-wrap">
                     <!-- topbar -->
                     <div class="chat-topbar">
-                        <div class="chat-topbar-icon">&#10024;</div>
+                        <div class="chat-topbar-icon">&#128172;</div>
                         <div class="chat-topbar-info">
                             <div class="chat-topbar-title" data-i18n="card_chat">Personnaliser avec l'IA</div>
                             <div class="chat-topbar-sub" data-i18n="chat_sub">Modifiez votre pr&#233;sentation en langage naturel</div>
@@ -1195,6 +1195,7 @@ HTML = """
             sort_asc:         "↑ Plus ancien",
             card_preview_btn: "👁 Aperçu",
             card_dl_btn:      "⬇ Télécharger",
+            card_pdf_btn:     "📄 PDF",
             chat_welcome:      "<strong>✨ Présentation générée !</strong><br>Décrivez ce que vous souhaitez modifier — couleurs, titres, slides, polices...",
             chat_done:         "Modifications terminées",
             chat_see:          "⬇ Voir le résultat",
@@ -1264,6 +1265,7 @@ HTML = """
             sort_asc:         "↑ Oldest",
             card_preview_btn: "👁 Preview",
             card_dl_btn:      "⬇ Download",
+            card_pdf_btn:     "📄 PDF",
             chat_welcome:      "<strong>✨ Presentation generated!</strong><br>Describe what you want to change — colors, titles, slides, fonts...",
             chat_done:         "Changes applied",
             chat_see:          "⬇ View result",
@@ -1659,7 +1661,7 @@ HTML = """
         list.style.display = 'flex';
 
         var fname = isZip ? 'presentations_FR_EN.zip' : 'presentation.pptx';
-        var icon = isZip ? '🗜️' : '📊';
+        var icon = isZip ? '🗜️' : '📋';
         var cardId = 'rc-' + sessionId;
         var slideAreaId = 'slides-' + sessionId;
 
@@ -1686,6 +1688,7 @@ HTML = """
             + '<div style="display:flex;gap:8px;align-items:center;">'
             + '<button onclick="openPreviewFor(this)" data-sid="' + sessionId + '" data-i18n="card_preview_btn" style="padding:8px 16px;background:#EFF1F5;color:#0F1D33;border:1px solid #D5D8DE;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;">' + t.card_preview_btn + '</button>'
             + '<a href="/download/' + sessionId + '" download="' + fname + '" data-i18n="card_dl_btn" style="padding:8px 16px;background:#0F1D33;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">' + t.card_dl_btn + '</a>'
+            + (!isZip ? '<a href="/export-pdf/' + sessionId + '" download="presentation.pdf" data-i18n="card_pdf_btn" style="padding:8px 16px;background:#B91C1C;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">' + t.card_pdf_btn + '</a>' : '')
             + '<button onclick="removeResult(this)" data-sid="' + sessionId + '" title="Supprimer" class="result-del-btn">&#128465;</button>'
             + '</div>'
             + '</div>';
@@ -2348,6 +2351,62 @@ def download(session_id: str):
         media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
         filename="presentation.pptx"
     )
+
+
+@app.get("/export-pdf/{session_id}")
+def export_pdf(session_id: str):
+    session = sessions.get(session_id)
+    if not session:
+        return JSONResponse({"error": "Session introuvable"}, status_code=404)
+    if session.get("is_zip"):
+        return JSONResponse({"error": "Export PDF non disponible pour le mode FR+EN"}, status_code=400)
+
+    pptx_path = session.get("output_path")
+    if not pptx_path or not os.path.exists(pptx_path):
+        return JSONResponse({"error": "Fichier PPTX introuvable"}, status_code=404)
+
+    pdf_path = pptx_path.replace(".pptx", ".pdf")
+
+    # Try PowerPoint COM (Windows)
+    try:
+        import comtypes.client
+        abs_pptx = os.path.abspath(pptx_path)
+        abs_pdf  = os.path.abspath(pdf_path)
+        powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
+        powerpoint.Visible = 1
+        deck = powerpoint.Presentations.Open(abs_pptx, WithWindow=False)
+        deck.SaveAs(abs_pdf, 32)  # 32 = ppSaveAsPDF
+        deck.Close()
+        powerpoint.Quit()
+        return FileResponse(abs_pdf, media_type="application/pdf",
+                            filename="presentation.pdf")
+    except Exception:
+        pass
+
+    # Try LibreOffice headless (Linux/Mac/Windows with LO installed)
+    try:
+        import subprocess
+        candidates = [
+            "soffice", "libreoffice",
+            r"C:\Program Files\LibreOffice\program\soffice.exe",
+            r"C:\Program Files (x86)\LibreOffice\program\soffice.exe",
+        ]
+        soffice = next((c for c in candidates if subprocess.call(
+            [c, "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        ) == 0), None)
+        if soffice:
+            subprocess.run([
+                soffice, "--headless", "--convert-to", "pdf",
+                "--outdir", os.path.dirname(os.path.abspath(pptx_path)),
+                os.path.abspath(pptx_path)
+            ], check=True, timeout=60)
+            if os.path.exists(pdf_path):
+                return FileResponse(pdf_path, media_type="application/pdf",
+                                    filename="presentation.pdf")
+    except Exception:
+        pass
+
+    return JSONResponse({"error": "Export PDF non disponible. Installez LibreOffice."}, status_code=500)
 
 
 @app.post("/analyze-readme")
