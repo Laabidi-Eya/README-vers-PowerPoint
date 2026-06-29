@@ -228,8 +228,4 @@ python-multipart >= 0.0.20     # Upload de fichiers
 
 ---
 
-## Auteur
-
-**Eya Laabidi**  
-📧 laabidieya6@gmail.com
 
