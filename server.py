@@ -2025,6 +2025,9 @@ HTML = """
                 + '<div style="width:60%;height:3px;background:' + accent + ';margin:14px auto;border-radius:2px;"></div>'
                 + '<div style="font-size:clamp(10px,1.1vw,13px);color:rgba(200,215,255,0.65);">' + today + '</div>'
                 + '</div>'
+                + '<div style="flex-shrink:0;padding:6px 16px;display:flex;justify-content:flex-end;">'
+                + '<span style="width:22px;height:22px;border-radius:50%;background:' + accent + ';color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;">1</span>'
+                + '</div>'
                 + '</div>';
         } else {
             var bullets = slide.bullets || [];
@@ -2041,11 +2044,13 @@ HTML = """
                 + '<div style="position:absolute;left:0;top:0;width:7px;height:100%;background:' + accent + ';z-index:2;"></div>'
                 + '<div style="background:' + primary + ';padding:12px 18px 12px 22px;flex-shrink:0;position:relative;">'
                 + '<div style="position:absolute;bottom:0;left:0;width:100%;height:3px;background:' + accent + ';"></div>'
-                + '<div style="font-size:8px;font-weight:700;color:rgba(204,221,255,0.55);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;">SLIDE ' + (idx + 1) + '</div>'
                 + '<div style="font-size:clamp(13px,2vw,22px);font-weight:700;color:' + ttl + ';line-height:1.2;">' + _escHtml(slide.title || '') + '</div>'
                 + '</div>'
                 + '<div style="flex:1;padding:10px 16px 10px 20px;overflow:hidden;display:flex;flex-direction:column;">'
                 + bulletsHtml
+                + '</div>'
+                + '<div style="flex-shrink:0;padding:6px 16px;display:flex;justify-content:flex-end;">'
+                + '<span style="width:22px;height:22px;border-radius:50%;background:' + accent + ';color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;">' + (idx + 1) + '</span>'
                 + '</div>'
                 + '</div>';
         }
