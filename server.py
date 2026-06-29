@@ -1195,7 +1195,7 @@ HTML = """
             sort_asc:         "↑ Plus ancien",
             card_preview_btn: "👁 Aperçu",
             card_dl_btn:      "⬇ Télécharger",
-            card_pdf_btn:     "📄 PDF",
+            card_pdf_btn:     "⬇ PDF",
             chat_welcome:      "<strong>✨ Présentation générée !</strong><br>Décrivez ce que vous souhaitez modifier — couleurs, titres, slides, polices...",
             chat_done:         "Modifications terminées",
             chat_see:          "⬇ Voir le résultat",
@@ -1265,7 +1265,7 @@ HTML = """
             sort_asc:         "↑ Oldest",
             card_preview_btn: "👁 Preview",
             card_dl_btn:      "⬇ Download",
-            card_pdf_btn:     "📄 PDF",
+            card_pdf_btn:     "⬇ PDF",
             chat_welcome:      "<strong>✨ Presentation generated!</strong><br>Describe what you want to change — colors, titles, slides, fonts...",
             chat_done:         "Changes applied",
             chat_see:          "⬇ View result",
@@ -1688,7 +1688,7 @@ HTML = """
             + '<div style="display:flex;gap:8px;align-items:center;">'
             + '<button onclick="openPreviewFor(this)" data-sid="' + sessionId + '" data-i18n="card_preview_btn" style="padding:8px 16px;background:#EFF1F5;color:#0F1D33;border:1px solid #D5D8DE;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;">' + t.card_preview_btn + '</button>'
             + '<a href="/download/' + sessionId + '" download="' + fname + '" data-i18n="card_dl_btn" style="padding:8px 16px;background:#0F1D33;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">' + t.card_dl_btn + '</a>'
-            + (!isZip ? '<a href="/export-pdf/' + sessionId + '" download="presentation.pdf" data-i18n="card_pdf_btn" style="padding:8px 16px;background:#B91C1C;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">' + t.card_pdf_btn + '</a>' : '')
+            + (!isZip ? '<a href="/export-pdf/' + sessionId + '" download="presentation.pdf" data-i18n="card_pdf_btn" style="padding:8px 16px;background:#F97316;color:white;border:1px solid #F97316;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">' + t.card_pdf_btn + '</a>' : '')
             + '<button onclick="removeResult(this)" data-sid="' + sessionId + '" title="Supprimer" class="result-del-btn">&#128465;</button>'
             + '</div>'
             + '</div>';
