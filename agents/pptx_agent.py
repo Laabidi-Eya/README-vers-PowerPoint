@@ -159,6 +159,35 @@ def _content_slide(prs, title_text, bullets, primary=DARK_BLUE, accent=ACCENT,
         run.font.name = body_font
 
 
+def _chart_slide(prs, chart_data: dict, primary, accent, bg, title_color,
+                 title_font="Calibri"):
+    """Add a slide with the generated chart image."""
+    image_path = chart_data.get("image_path")
+    if not image_path or not os.path.exists(image_path):
+        return
+
+    slide = prs.slides.add_slide(prs.slide_layouts[6])
+    _fill_bg(slide, bg)
+
+    # Header identical to content slides
+    _add_rect(slide, 0, 0, W, Inches(1.5), primary)
+    _add_rect(slide, 0, Inches(1.5), W, Inches(0.08), accent)
+    _add_rect(slide, 0, Inches(1.58), Inches(0.1), H - Inches(1.58), accent)
+    _add_rect(slide, W - Inches(1.2), 0, Inches(1.2), Inches(1.5), primary)
+
+    chart_label = "📊 " + chart_data.get("title", "Données chiffrées")
+    _textbox(slide, Inches(0.4), Inches(0.2), Inches(8.2), Inches(1.1),
+             chart_label, 26, bold=True, color=title_color,
+             align=PP_ALIGN.LEFT, font_name=title_font)
+
+    # Insert chart image centred in content area
+    img_x = Inches(0.4)
+    img_y = Inches(1.75)
+    img_w = W - Inches(0.8)
+    img_h = H - Inches(2.0)
+    slide.shapes.add_picture(image_path, img_x, img_y, img_w, img_h)
+
+
 def _exec_pptx_code(prs: Presentation, code: str) -> None:
     import logging
     _log = logging.getLogger(__name__)
@@ -215,7 +244,10 @@ def pptx_agent(state: dict) -> dict:
                  title_font=title_font, title_size=cover_title_size,
                  title_bold=title_bold, title_color=effective_title_color)
 
-    for slide_data in slides_plan["slides"]:
+    chart_data = state.get("chart_data")
+    chart_insert_after = chart_data["slide_idx"] if chart_data else -1
+
+    for i, slide_data in enumerate(slides_plan["slides"]):
         _content_slide(
             prs, slide_data["title"], slide_data["bullets"],
             primary=primary, accent=accent,
@@ -225,6 +257,11 @@ def pptx_agent(state: dict) -> dict:
             bullet_char=bullet_char, title_bold=title_bold,
             title_color=effective_title_color, body_bold=body_bold
         )
+        # Insert chart slide right after the slide that contains the data
+        if i == chart_insert_after and chart_data:
+            _chart_slide(prs, chart_data, primary, accent,
+                         bg_color or LIGHT_BG, effective_title_color,
+                         title_font)
 
     if logo_path and os.path.exists(logo_path):
         pos = dp.get("logo_position", "top-right")
