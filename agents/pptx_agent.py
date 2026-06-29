@@ -111,101 +111,52 @@ def _content_slide(prs, title_text, bullets, primary=DARK_BLUE, accent=ACCENT,
              align=PP_ALIGN.LEFT, font_name=title_font)
 
     n = len(bullets)
-    # Content zone: y=1.68" to y=7.3"  →  5.62" available
+    # Content zone: y=1.68" to y=7.3" → 5.62" available
     CONTENT_TOP = Inches(1.68)
     CONTENT_H   = Inches(5.62)
     CONTENT_X   = Inches(0.35)
     CONTENT_W   = Inches(9.3)
 
-    if n <= 5:
-        # ── Card layout: one visual card per bullet ──────────────────────
-        gap      = Inches(0.14)
-        card_h   = (CONTENT_H - gap * (n - 1)) / max(n, 1)
-        font_pt  = min(20, max(13, int(card_h * 72 * 0.30)))
+    # Dynamic font: bigger when few bullets, smaller when many
+    max_font = body_size + (5 if n <= 3 else 2 if n <= 5 else 0)
+    min_font = max(12, body_size - 5)
+    ideal_per_pt = CONTENT_H * 72 / max(n, 1)
+    font_pt = max(min_font, min(max_font, int(ideal_per_pt * 0.36)))
 
-        for i, bullet in enumerate(bullets):
-            cy = CONTENT_TOP + i * (card_h + gap)
+    # Slot height per bullet (evenly distributed)
+    slot_h = CONTENT_H / max(n, 1)
 
-            # card background (white with slight tint)
-            card_bg = slide.shapes.add_shape(1, CONTENT_X, cy, CONTENT_W, card_h)
-            card_bg.fill.solid()
-            card_bg.fill.fore_color.rgb = WHITE
-            card_bg.line.color.rgb = RGBColor(0xE0, 0xE4, 0xED)
-            card_bg.line.width = Pt(0.75)
+    for i, bullet in enumerate(bullets):
+        # Vertical center of this slot
+        slot_cy = CONTENT_TOP + slot_h * i + slot_h / 2
+        # Text box height = font + some breathing room
+        tb_h = Inches(max(0.45, font_pt * 1.8 / 72))
+        tb_y = slot_cy - tb_h / 2
 
-            # left accent bar
-            bar_w = Inches(0.07)
-            bar = slide.shapes.add_shape(1, CONTENT_X, cy, bar_w, card_h)
-            bar.fill.solid()
-            bar.fill.fore_color.rgb = accent
-            bar.line.fill.background()
+        # Dot indicator — small circle centered vertically on the slot
+        dot_r  = Inches(0.07)
+        dot_cx = CONTENT_X + Inches(0.18)
+        dot_cy = slot_cy - dot_r
+        dot_shape = slide.shapes.add_shape(1, dot_cx, dot_cy, dot_r * 2, dot_r * 2)
+        dot_shape.fill.solid()
+        dot_shape.fill.fore_color.rgb = accent
+        dot_shape.line.fill.background()
 
-            # bullet icon box
-            icon_size = Inches(0.38)
-            icon_x = CONTENT_X + bar_w + Inches(0.18)
-            icon_y = cy + (card_h - icon_size) / 2
-            icon_box = slide.shapes.add_shape(1, icon_x, icon_y, icon_size, icon_size)
-            icon_box.fill.solid()
-            icon_box.fill.fore_color.rgb = accent
-            icon_box.line.fill.background()
-            tf_ic = icon_box.text_frame
-            tf_ic.paragraphs[0].alignment = PP_ALIGN.CENTER
-            run_ic = tf_ic.paragraphs[0].add_run()
-            run_ic.text = str(i + 1)
-            run_ic.font.size = Pt(int(font_pt * 0.7))
-            run_ic.font.bold = True
-            run_ic.font.color.rgb = WHITE
-            run_ic.font.name = body_font
-
-            # text
-            text_x = icon_x + icon_size + Inches(0.18)
-            text_w = CONTENT_X + CONTENT_W - text_x - Inches(0.2)
-            text_margin = (card_h - Pt(font_pt).inches * 1.4) / 2
-            tb = slide.shapes.add_textbox(text_x, cy + text_margin, text_w, card_h - text_margin * 2)
-            tf = tb.text_frame
-            tf.word_wrap = True
-            p = tf.paragraphs[0]
-            p.alignment = PP_ALIGN.LEFT
-            run = p.add_run()
-            run.text = bullet
-            run.font.size = Pt(font_pt)
-            run.font.bold = body_bold
-            run.font.color.rgb = txt
-            run.font.name = body_font
-
-    else:
-        # ── Classic text box, vertically centered ────────────────────────
-        max_size, min_size = max(body_size + 3, 20), 12
-        ideal_per = CONTENT_H * 72 / n          # pt per bullet
-        font_pt   = max(min_size, min(max_size, int(ideal_per * 0.38)))
-        line_h    = font_pt * 1.45
-        spacing   = max(6.0, min(ideal_per - line_h, 32.0))
-
-        est_h     = Inches((line_h * n + spacing * (n - 1)) / 72)
-        y_start   = CONTENT_TOP + max(Inches(0.1), (CONTENT_H - est_h) / 2)
-
-        txBox2 = slide.shapes.add_textbox(CONTENT_X + Inches(0.1), y_start,
-                                          CONTENT_W - Inches(0.1), est_h + Inches(0.3))
-        tf2 = txBox2.text_frame
-        tf2.word_wrap = True
-
-        for i, bullet in enumerate(bullets):
-            p = tf2.paragraphs[0] if i == 0 else tf2.add_paragraph()
-            p.space_before = Pt(0 if i == 0 else int(spacing))
-
-            dot = p.add_run()
-            dot.text = bullet_char + "  "
-            dot.font.size = Pt(int(font_pt * 0.65))
-            dot.font.color.rgb = accent
-            dot.font.name = body_font
-            dot.font.bold = True
-
-            run = p.add_run()
-            run.text = bullet
-            run.font.size = Pt(font_pt)
-            run.font.bold = body_bold
-            run.font.color.rgb = txt
-            run.font.name = body_font
+        # Bullet text
+        tb = slide.shapes.add_textbox(
+            dot_cx + dot_r * 2 + Inches(0.12), tb_y,
+            CONTENT_W - Inches(0.5), tb_h
+        )
+        tf = tb.text_frame
+        tf.word_wrap = True
+        p = tf.paragraphs[0]
+        p.alignment = PP_ALIGN.LEFT
+        run = p.add_run()
+        run.text = bullet
+        run.font.size = Pt(font_pt)
+        run.font.bold = body_bold
+        run.font.color.rgb = txt
+        run.font.name = body_font
 
 
 def _exec_pptx_code(prs: Presentation, code: str) -> None:

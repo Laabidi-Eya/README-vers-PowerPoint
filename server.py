@@ -2027,25 +2027,14 @@ HTML = """
         } else {
             var bullets = slide.bullets || [];
             var n = bullets.length;
-            var useCards = n <= 5;
-            var bulletsHtml;
-            if (useCards) {
-                bulletsHtml = bullets.map(function(b, i) {
-                    return '<div style="flex:1;display:flex;align-items:center;gap:10px;background:white;border-radius:5px;border:1px solid rgba(0,0,0,0.07);border-left:4px solid ' + accent + ';padding:0 12px;min-height:0;overflow:hidden;">'
-                        + '<div style="flex-shrink:0;width:clamp(18px,2vw,26px);height:clamp(18px,2vw,26px);border-radius:4px;background:' + accent + ';display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:clamp(9px,1vw,12px);">' + (i + 1) + '</div>'
-                        + '<span style="color:' + txt + ';font-size:clamp(9px,1.25vw,14px);line-height:1.4;font-weight:500;">' + _escHtml(b) + '</span>'
-                        + '</div>';
-                }).join('');
-                bulletsHtml = '<div style="display:flex;flex-direction:column;gap:6px;height:100%;">' + bulletsHtml + '</div>';
-            } else {
-                bulletsHtml = bullets.map(function(b) {
-                    return '<li style="display:flex;align-items:flex-start;gap:8px;color:' + txt + ';font-size:clamp(8px,1.1vw,13px);line-height:1.45;">'
-                        + '<span style="flex-shrink:0;color:' + accent + ';font-size:7px;margin-top:3px;">&#9654;</span>'
-                        + '<span>' + _escHtml(b) + '</span>'
-                        + '</li>';
-                }).join('');
-                bulletsHtml = '<ul style="list-style:none;display:flex;flex-direction:column;justify-content:space-evenly;height:100%;margin:0;padding:0;">' + bulletsHtml + '</ul>';
-            }
+            var fsize = n <= 3 ? 'clamp(12px,1.7vw,18px)' : n <= 5 ? 'clamp(10px,1.4vw,15px)' : 'clamp(9px,1.1vw,13px)';
+            var bulletsHtml = bullets.map(function(b) {
+                return '<li style="display:flex;align-items:flex-start;gap:10px;color:' + txt + ';font-size:' + fsize + ';line-height:1.5;">'
+                    + '<span style="flex-shrink:0;width:6px;height:6px;border-radius:50%;background:' + accent + ';margin-top:0.45em;"></span>'
+                    + '<span>' + _escHtml(b) + '</span>'
+                    + '</li>';
+            }).join('');
+            var bulletsHtml = '<ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;justify-content:space-evenly;height:100%;">' + bulletsHtml + '</ul>';
             html = '<div style="width:100%;aspect-ratio:10/7.5;background:' + bg + ';position:relative;border-radius:3px;box-shadow:0 12px 40px rgba(0,0,0,0.5);overflow:hidden;display:flex;flex-direction:column;">'
                 + '<div style="position:absolute;left:0;top:0;width:7px;height:100%;background:' + accent + ';z-index:2;"></div>'
                 + '<div style="background:' + primary + ';padding:12px 18px 12px 22px;flex-shrink:0;position:relative;">'
