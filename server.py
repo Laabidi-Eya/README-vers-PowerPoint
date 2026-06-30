@@ -931,8 +931,75 @@ HTML = """
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
                 <button class="btn-edit-preview" onclick="goToChat()" data-i18n="preview_edit">✏️ Modifier</button>
+                <button class="btn-edit-preview" onclick="openEmailModal(window._previewSessionId)" title="Envoyer par email" style="padding:0 10px;">&#128231;</button>
                 <a class="btn-dl-preview" id="preview-dl-btn" href="#" download data-i18n="preview_dl">⬇ Télécharger</a>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lang picker modal (ZIP) -->
+<div class="modal-overlay" id="zip-lang-overlay" onclick="if(event.target===this)closeZipLang()" style="z-index:300;">
+    <div style="background:white;border-radius:16px;width:340px;max-width:95vw;box-shadow:0 24px 64px rgba(15,29,51,0.18);overflow:hidden;animation:fadeSlideUp 0.25s ease forwards;">
+        <div style="padding:24px 24px 20px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;">
+                <div>
+                    <div style="font-size:14px;font-weight:700;color:#0F1D33;" id="zip-lang-title">Choisir la langue</div>
+                    <div style="font-size:11px;color:#A0ABBD;margin-top:2px;">Votre présentation est disponible en FR et EN</div>
+                </div>
+                <button onclick="closeZipLang()" style="background:none;border:none;color:#A0ABBD;font-size:18px;cursor:pointer;">✕</button>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <button id="zip-btn-fr" onclick="confirmZipLang('fr')" style="flex:1;padding:14px;background:#0F1D33;color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;">🇫🇷 Français</button>
+                <button id="zip-btn-en" onclick="confirmZipLang('en')" style="flex:1;padding:14px;background:#EFF1F5;color:#0F1D33;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.15s;">🇬🇧 English</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Email modal -->
+<div class="modal-overlay" id="email-overlay" onclick="if(event.target===this)closeEmailModal()" style="z-index:300;">
+    <div style="background:white;border-radius:16px;width:440px;max-width:95vw;box-shadow:0 24px 64px rgba(15,29,51,0.18);overflow:hidden;animation:fadeSlideUp 0.25s ease forwards;">
+        <!-- Header -->
+        <div style="padding:24px 24px 0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:36px;height:36px;background:#FFF4ED;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;">&#128231;</div>
+                    <div>
+                        <div style="font-size:14px;font-weight:700;color:#0F1D33;">Envoyer la présentation</div>
+                        <div style="font-size:11px;color:#A0ABBD;margin-top:1px;">Le fichier .pptx sera joint automatiquement</div>
+                    </div>
+                </div>
+                <button onclick="closeEmailModal()" style="background:none;border:none;color:#A0ABBD;font-size:18px;cursor:pointer;line-height:1;padding:4px;">✕</button>
+            </div>
+            <!-- Email input -->
+            <div style="margin-bottom:14px;">
+                <div style="font-size:11px;font-weight:600;color:#A0ABBD;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px;">Destinataire</div>
+                <input id="email-to-input" type="email" placeholder="destinataire@email.com"
+                    style="width:100%;box-sizing:border-box;padding:11px 14px;border:1.5px solid #E2E5EC;border-radius:10px;font-size:13px;font-family:inherit;outline:none;color:#0F1D33;background:#FAFBFC;transition:border 0.15s,box-shadow 0.15s;"
+                    onfocus="this.style.borderColor='#F97316';this.style.boxShadow='0 0 0 3px rgba(249,115,22,0.1)'"
+                    onblur="this.style.borderColor='#E2E5EC';this.style.boxShadow='none'"/>
+            </div>
+            <!-- Message -->
+            <div style="margin-bottom:16px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                    <div style="font-size:11px;font-weight:600;color:#A0ABBD;letter-spacing:0.06em;text-transform:uppercase;">Message</div>
+                    <button id="email-translate-btn" onclick="toggleEmailTranslation()" style="background:none;border:none;color:#F97316;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;padding:2px 4px;">&#127760; Traduire en EN</button>
+                </div>
+                <textarea id="email-body-input" rows="6"
+                    style="width:100%;box-sizing:border-box;padding:11px 14px;border:1.5px solid #E2E5EC;border-radius:10px;font-size:12px;font-family:inherit;outline:none;resize:none;color:#354A6B;background:#FAFBFC;line-height:1.7;transition:border 0.15s,box-shadow 0.15s;"
+                    onfocus="this.style.borderColor='#F97316';this.style.boxShadow='0 0 0 3px rgba(249,115,22,0.1)'"
+                    onblur="this.style.borderColor='#E2E5EC';this.style.boxShadow='none'"></textarea>
+            </div>
+        </div>
+        <!-- Footer -->
+        <div style="padding:0 24px 24px;display:flex;flex-direction:column;gap:10px;">
+            <div id="email-status" style="display:none;font-size:12px;font-weight:600;text-align:center;padding:9px;border-radius:8px;"></div>
+            <button id="email-send-btn" onclick="submitSendEmail()"
+                style="width:100%;padding:13px;background:#0F1D33;color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;letter-spacing:0.02em;transition:background 0.15s;"
+                onmouseover="this.style.background='#1B2A4A'" onmouseout="this.style.background='#0F1D33'">
+                Envoyer →
+            </button>
         </div>
     </div>
 </div>
@@ -971,9 +1038,17 @@ HTML = """
         </button>
 
         <div class="sidebar-divider"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 16px 6px;">
+        <div style="padding:16px 16px 6px;">
             <span class="sidebar-section-label" style="padding:0;" data-i18n="history_title">Historique</span>
-            <button id="history-clear-btn" onclick="clearHistory()" title="Effacer l'historique" style="display:none;background:none;border:none;cursor:pointer;color:rgba(255,255,255,0.3);font-size:13px;padding:2px 5px;border-radius:4px;line-height:1;transition:color 0.15s;" onmouseover="this.style.color='#E53E3E'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">&#128465;</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;padding:0 12px 10px;">
+            <div style="position:relative;flex:1;">
+                <svg style="position:absolute;left:9px;top:50%;transform:translateY(-50%);pointer-events:none;" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input id="history-search-input" type="text" oninput="filterHistory(this.value)" placeholder="Rechercher..."
+                    style="width:100%;box-sizing:border-box;padding:8px 10px 8px 28px;border:none;border-radius:8px;font-size:11.5px;font-family:inherit;outline:none;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.8);transition:background 0.15s;"
+                    onfocus="this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.background='rgba(255,255,255,0.07)'"/>
+            </div>
+            <button id="history-clear-btn" onclick="clearHistory()" title="Effacer l'historique" style="display:none;background:rgba(255,255,255,0.07);border:none;cursor:pointer;color:rgba(255,255,255,0.35);font-size:13px;padding:8px 9px;border-radius:8px;line-height:1;transition:all 0.15s;flex-shrink:0;" onmouseover="this.style.background='rgba(229,62,62,0.15)';this.style.color='#E53E3E'" onmouseout="this.style.background='rgba(255,255,255,0.07)';this.style.color='rgba(255,255,255,0.35)'">&#128465;</button>
         </div>
         <div id="history-list"></div>
     </aside>
@@ -1089,10 +1164,12 @@ HTML = """
                 </div>
 
                 <!-- Liste dynamique des présentations -->
-                <div id="result-sort-bar" style="display:none;align-items:center;gap:10px;margin-bottom:4px;">
+                <div id="result-sort-bar" style="display:none;align-items:center;gap:14px;margin-bottom:4px;flex-wrap:wrap;">
                     <span data-i18n="sort_label" style="font-size:12px;color:#A0ABBD;font-weight:600;">Trier par date :</span>
-                    <button id="sort-desc-btn" onclick="sortResults('desc')" data-i18n="sort_desc" style="padding:5px 12px;border-radius:6px;border:1px solid #D5D8DE;background:#0F1D33;color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">&#8595; Plus r&eacute;cent</button>
-                    <button id="sort-asc-btn"  onclick="sortResults('asc')"  data-i18n="sort_asc"  style="padding:5px 12px;border-radius:6px;border:1px solid #D5D8DE;background:#EFF1F5;color:#0F1D33;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">&#8593; Plus ancien</button>
+                    <div style="display:flex;background:#EFF1F5;border-radius:8px;padding:3px;gap:2px;">
+                        <button id="sort-desc-btn" onclick="sortResults('desc')" data-i18n="sort_desc" style="padding:6px 12px;border-radius:6px;border:none;background:#0F1D33;color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;">&#8595; Plus r&eacute;cent</button>
+                        <button id="sort-asc-btn"  onclick="sortResults('asc')"  data-i18n="sort_asc"  style="padding:6px 12px;border-radius:6px;border:none;background:transparent;color:#5B6B85;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s;">&#8593; Plus ancien</button>
+                    </div>
                 </div>
                 <div id="result-list" style="display:none;flex-direction:column;gap:20px;"></div>
 
@@ -1193,9 +1270,19 @@ HTML = """
             sort_label:       "Trier par date :",
             sort_desc:        "↓ Plus récent",
             sort_asc:         "↑ Plus ancien",
+            search_ph:        "Rechercher une présentation...",
             card_preview_btn: "👁 Aperçu",
             card_dl_btn:      "⬇ Télécharger",
             card_pdf_btn:     "⬇ PDF",
+            card_send_btn:    "📤 Envoyer",
+            email_modal_title:"📤 Envoyer par email",
+            email_to_label:   "Email du destinataire",
+            email_to_ph:      "destinataire@email.com",
+            email_msg_label:  "Message (généré par l'IA — modifiable)",
+            email_send_btn:   "Envoyer la présentation",
+            email_sending:    "Envoi en cours...",
+            email_ok:         "✅ Email envoyé avec succès !",
+            email_err:        "❌ Erreur lors de l'envoi.",
             chat_welcome:      "<strong>✨ Présentation générée !</strong><br>Décrivez ce que vous souhaitez modifier — couleurs, titres, slides, polices...",
             chat_done:         "Modifications terminées",
             chat_see:          "⬇ Voir le résultat",
@@ -1263,9 +1350,19 @@ HTML = """
             sort_label:       "Sort by date:",
             sort_desc:        "↓ Most recent",
             sort_asc:         "↑ Oldest",
+            search_ph:        "Search a presentation...",
             card_preview_btn: "👁 Preview",
             card_dl_btn:      "⬇ Download",
             card_pdf_btn:     "⬇ PDF",
+            card_send_btn:    "📤 Send",
+            email_modal_title:"📤 Send by email",
+            email_to_label:   "Recipient email",
+            email_to_ph:      "recipient@email.com",
+            email_msg_label:  "Message (AI-generated — editable)",
+            email_send_btn:   "Send presentation",
+            email_sending:    "Sending...",
+            email_ok:         "✅ Email sent successfully!",
+            email_err:        "❌ Error sending email.",
             chat_welcome:      "<strong>✨ Presentation generated!</strong><br>Describe what you want to change — colors, titles, slides, fonts...",
             chat_done:         "Changes applied",
             chat_see:          "⬇ View result",
@@ -1301,6 +1398,8 @@ HTML = """
         if (chatInput) chatInput.placeholder = t.chat_placeholder;
         var ghInput = document.getElementById('github-url');
         if (ghInput) ghInput.placeholder = t.gh_placeholder;
+        var searchInput = document.getElementById('history-search-input');
+        if (searchInput) searchInput.placeholder = t.search_ph;
         // Mettre à jour le download filename sur les liens des cartes résultat
         document.querySelectorAll('#result-list a[data-i18n="card_dl_btn"]').forEach(function(a) {
             var href = a.getAttribute('href') || '';
@@ -1582,22 +1681,35 @@ HTML = """
         if (clearBtn) clearBtn.style.display = 'block';
         var count = document.getElementById('stat-history');
         if (count) count.textContent = presentationHistory.length;
-        presentationHistory.forEach(function(item, idx) {
+        // Épinglés en premier, puis par date
+        var sorted = presentationHistory.slice().sort(function(a, b) {
+            if (a.pinned && !b.pinned) return -1;
+            if (!a.pinned && b.pinned) return 1;
+            return 0;
+        });
+        sorted.forEach(function(item) {
+            var idx = presentationHistory.indexOf(item);
             var fname = item.isZip ? 'presentations_FR_EN.zip' : 'presentation.pptx';
             var shortTitle = item.title.length > 22 ? item.title.substring(0, 22) + '...' : item.title;
             var div = document.createElement('div');
             div.className = 'sidebar-history-item';
-            div.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:6px;cursor:pointer;transition:background 0.15s;';
-            div.onmouseover = function(){ this.style.background='rgba(255,255,255,0.06)'; };
-            div.onmouseout  = function(){ this.style.background=''; };
+            div.style.cssText = 'display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:6px;cursor:pointer;transition:background 0.15s;' + (item.pinned ? 'background:rgba(249,115,22,0.08);border-left:2px solid #F97316;padding-left:10px;' : '');
+            div.onmouseover = function(){ this.style.background = item.pinned ? 'rgba(249,115,22,0.13)' : 'rgba(255,255,255,0.06)'; };
+            div.onmouseout  = function(){ this.style.background = item.pinned ? 'rgba(249,115,22,0.08)' : ''; };
             div.innerHTML = '<div style="flex:1;min-width:0;">'
                 + '<div style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.85);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + item.title + '">' + shortTitle + '</div>'
                 + '<div style="font-size:10px;color:rgba(255,255,255,0.35);margin-top:2px;">' + item.time + ' &middot; ' + fname + '</div>'
                 + '</div>'
+                + '<button onclick="event.stopPropagation();togglePin(' + idx + ')" title="' + (item.pinned ? 'Désépingler' : 'Épingler') + '" style="background:none;border:none;cursor:pointer;font-size:12px;padding:2px 3px;opacity:' + (item.pinned ? '1' : '0.3') + ';transition:opacity 0.15s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=' + (item.pinned ? '1' : '0.3') + '">📌</button>'
                 + '<a href="/download/' + item.sessionId + '" download="' + fname + '" onclick="event.stopPropagation()" title="Telecharger" class="hist-dl-btn">&#11015;</a>'
                 + '<button onclick="removeFromHistory(' + idx + ')" title="Supprimer" class="hist-del-btn">&#10005;</button>';
             list.appendChild(div);
         });
+    }
+
+    function togglePin(idx) {
+        presentationHistory[idx].pinned = !presentationHistory[idx].pinned;
+        renderHistory();
     }
 
     function removeFromHistory(idx) {
@@ -1631,10 +1743,21 @@ HTML = """
         });
         cards.forEach(function(c){ list.appendChild(c); });
         // Mettre à jour le style des boutons actifs
-        document.getElementById('sort-desc-btn').style.background = order === 'desc' ? '#0F1D33' : '#EFF1F5';
-        document.getElementById('sort-desc-btn').style.color      = order === 'desc' ? 'white'   : '#0F1D33';
-        document.getElementById('sort-asc-btn').style.background  = order === 'asc'  ? '#0F1D33' : '#EFF1F5';
-        document.getElementById('sort-asc-btn').style.color       = order === 'asc'  ? 'white'   : '#0F1D33';
+        document.getElementById('sort-desc-btn').style.background = order === 'desc' ? '#0F1D33' : 'transparent';
+        document.getElementById('sort-desc-btn').style.color      = order === 'desc' ? 'white'   : '#5B6B85';
+        document.getElementById('sort-asc-btn').style.background  = order === 'asc'  ? '#0F1D33' : 'transparent';
+        document.getElementById('sort-asc-btn').style.color       = order === 'asc'  ? 'white'   : '#5B6B85';
+    }
+
+    function filterHistory(query) {
+        query = query.trim().toLowerCase();
+        var list = document.getElementById('history-list');
+        if (!list) return;
+        Array.from(list.children).forEach(function(item){
+            var titleEl = item.querySelector('div[style*="font-size:12px"]');
+            var text = titleEl ? titleEl.textContent.toLowerCase() : '';
+            item.style.display = (!query || text.indexOf(query) !== -1) ? '' : 'none';
+        });
     }
 
     function _checkResultEmpty() {
@@ -1686,9 +1809,9 @@ HTML = """
             + '</div>'
             + '</div>'
             + '<div style="display:flex;gap:8px;align-items:center;">'
-            + '<button onclick="openPreviewFor(this)" data-sid="' + sessionId + '" data-i18n="card_preview_btn" style="padding:8px 16px;background:#EFF1F5;color:#0F1D33;border:1px solid #D5D8DE;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;">' + t.card_preview_btn + '</button>'
+            + '<button onclick="handleCardPreview(this)" data-sid="' + sessionId + '" data-iszip="' + (isZip ? '1' : '0') + '" data-i18n="card_preview_btn" style="padding:8px 16px;background:#EFF1F5;color:#0F1D33;border:1px solid #D5D8DE;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;">' + t.card_preview_btn + '</button>'
             + '<a href="/download/' + sessionId + '" download="' + fname + '" data-i18n="card_dl_btn" style="padding:8px 16px;background:#0F1D33;color:white;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">' + t.card_dl_btn + '</a>'
-            + (!isZip ? '<a href="/export-pdf/' + sessionId + '" download="presentation.pdf" data-i18n="card_pdf_btn" style="padding:8px 16px;background:#F97316;color:white;border:1px solid #F97316;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px;">' + t.card_pdf_btn + '</a>' : '')
+            + '<button onclick="handleCardPdf(this)" data-sid="' + sessionId + '" data-iszip="' + (isZip ? '1' : '0') + '" data-i18n="card_pdf_btn" style="padding:8px 16px;background:white;color:#F97316;border:1.5px solid #F97316;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;">' + t.card_pdf_btn + '</button>'
             + '<button onclick="removeResult(this)" data-sid="' + sessionId + '" title="Supprimer" class="result-del-btn">&#128465;</button>'
             + '</div>'
             + '</div>';
@@ -1697,10 +1820,59 @@ HTML = """
         _checkResultEmpty();
     }
 
+    var _zipLangSessionId = null;
+    var _zipLangAction = null;
+
+    function handleCardPreview(btn) {
+        var sid = btn.dataset.sid;
+        var isZip = btn.dataset.iszip === '1';
+        if (isZip) { _openZipLang(sid, 'preview'); } else { openPreviewFor(btn); }
+    }
+    function handleCardPdf(btn) {
+        var sid = btn.dataset.sid;
+        var isZip = btn.dataset.iszip === '1';
+        if (isZip) { window.location.href = '/export-pdf-zip/' + sid; }
+        else { window.location.href = '/export-pdf/' + sid; }
+    }
+    function _openZipLang(sessionId, action) {
+        _zipLangSessionId = sessionId;
+        _zipLangAction = action;
+        var title = action === 'pdf' ? 'Choisir la langue du PDF' : "Choisir la langue de l'aperçu";
+        document.getElementById('zip-lang-title').textContent = title;
+        var isFr = currentUILang !== 'en';
+        var btnFr = document.getElementById('zip-btn-fr');
+        var btnEn = document.getElementById('zip-btn-en');
+        if (btnFr && btnEn) {
+            btnFr.style.background = isFr ? '#0F1D33' : '#EFF1F5';
+            btnFr.style.color = isFr ? 'white' : '#0F1D33';
+            btnEn.style.background = !isFr ? '#F97316' : '#EFF1F5';
+            btnEn.style.color = !isFr ? 'white' : '#0F1D33';
+        }
+        document.getElementById('zip-lang-overlay').classList.add('show');
+    }
+    function closeZipLang() {
+        document.getElementById('zip-lang-overlay').classList.remove('show');
+        _zipLangSessionId = null; _zipLangAction = null;
+    }
+    async function confirmZipLang(lang) {
+        var sid = _zipLangSessionId;
+        var action = _zipLangAction;
+        closeZipLang();
+        if (action === 'pdf') {
+            window.location.href = '/export-pdf/' + sid + '?lang=' + lang;
+        } else {
+            await openPreviewById(sid, lang);
+        }
+    }
+
     async function openPreviewFor(btn) {
         var sessionId = btn.getAttribute('data-sid');
+        await openPreviewById(sessionId, 'fr');
+    }
+
+    async function openPreviewById(sessionId, lang) {
         try {
-            var res = await fetch('/preview/' + sessionId);
+            var res = await fetch('/preview/' + sessionId + '?lang=' + lang);
             var data = await res.json();
             if (data.error) { alert(data.error); return; }
             var presTitle = (data.slides_plan && data.slides_plan.title) ? data.slides_plan.title : 'Aperçu';
@@ -1708,6 +1880,11 @@ HTML = """
             if (!previewSlides.length) { alert('Aucune slide à afficher.'); return; }
             window._previewSessionId = sessionId;
             window._previewHasLogo  = data.has_logo || false;
+            if (data.is_zip) {
+                window._previewChatSessionId = (lang === 'en' ? data.sub_session_en : data.sub_session_fr) || sessionId;
+            } else {
+                window._previewChatSessionId = sessionId;
+            }
             document.getElementById('preview-pres-title').textContent = presTitle;
             document.getElementById('preview-dl-btn').href = '/download/' + sessionId;
             var colors = data.colors || {};
@@ -1998,6 +2175,97 @@ HTML = """
         document.getElementById('preview-overlay').classList.remove('show');
     }
 
+    var _emailSessionId = null;
+    async function openEmailModal(el) {
+        var sessionId = (typeof el === 'string') ? el : el.dataset.sid;
+        _emailSessionId = sessionId;
+        var t = TRANSLATIONS[currentUILang];
+        document.getElementById('email-to-input').value = '';
+        document.getElementById('email-status').style.display = 'none';
+        document.getElementById('email-send-btn').disabled = false;
+        document.getElementById('email-send-btn').textContent = t.email_send_btn;
+        var ta = document.getElementById('email-body-input');
+        ta.value = 'Génération du message IA...';
+        document.getElementById('email-overlay').classList.add('show');
+        try {
+            var res = await fetch('/email-draft/' + sessionId);
+            var data = await res.json();
+            ta.value = data.body || '';
+        } catch(e) {
+            ta.value = '';
+        }
+    }
+
+    function closeEmailModal() {
+        document.getElementById('email-overlay').classList.remove('show');
+        _emailSessionId = null;
+        _emailLangIsEn = false;
+    }
+
+    var _emailLangIsEn = false;
+    async function toggleEmailTranslation() {
+        var ta = document.getElementById('email-body-input');
+        var btn = document.getElementById('email-translate-btn');
+        var targetLang = _emailLangIsEn ? 'fr' : 'en';
+        var original = btn.textContent;
+        btn.textContent = '... ';
+        btn.disabled = true;
+        try {
+            var res = await fetch('/translate-email', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text: ta.value, target_lang: targetLang})
+            });
+            var data = await res.json();
+            if (data.text) {
+                ta.value = data.text;
+                _emailLangIsEn = !_emailLangIsEn;
+                btn.textContent = _emailLangIsEn ? '🌐 Traduire en FR' : '🌐 Traduire en EN';
+            } else {
+                btn.textContent = original;
+            }
+        } catch(e) {
+            btn.textContent = original;
+        }
+        btn.disabled = false;
+    }
+
+    async function submitSendEmail() {
+        var t = TRANSLATIONS[currentUILang];
+        var to = document.getElementById('email-to-input').value.trim();
+        var body = document.getElementById('email-body-input').value.trim();
+        if (!to) { document.getElementById('email-to-input').focus(); return; }
+        var btn = document.getElementById('email-send-btn');
+        var status = document.getElementById('email-status');
+        btn.disabled = true;
+        btn.textContent = t.email_sending;
+        status.style.display = 'none';
+        try {
+            var res = await fetch('/send-email/' + _emailSessionId, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({to_email: to, body: body})
+            });
+            var data = await res.json();
+            if (res.ok) {
+                status.style.display = 'block';
+                status.style.background = '#ECFDF5';
+                status.style.color = '#065F46';
+                status.textContent = t.email_ok;
+                setTimeout(closeEmailModal, 2000);
+            } else {
+                throw new Error(data.error || 'Erreur');
+            }
+        } catch(e) {
+            status.style.display = 'block';
+            status.style.background = '#FEF2F2';
+            status.style.color = '#991B1B';
+            status.textContent = t.email_err + ' ' + (e.message || '');
+            btn.disabled = false;
+            btn.textContent = t.email_send_btn;
+        }
+    }
+
     function renderPreviewSlide() {
         if (!previewSlides.length) return;
         var wrap = document.getElementById('preview-slide-wrap');
@@ -2186,6 +2454,9 @@ HTML = """
     }
 
     function goToChat() {
+        if (window._previewChatSessionId) {
+            currentSessionId = window._previewChatSessionId;
+        }
         closePreview();
         showTab('chat');
         setTimeout(function() {
@@ -2304,13 +2575,32 @@ async def generate(file: UploadFile = File(...), lang: str = Form("auto"), audie
             with zipfile.ZipFile(zip_path, "w") as zf:
                 zf.write(result_fr["output_path"], "presentation_FR.pptx")
                 zf.write(result_en["output_path"], "presentation_EN.pptx")
+            sid_fr = str(uuid.uuid4())
+            sid_en = str(uuid.uuid4())
+            _base = {
+                "readme_content": readme_content, "audience": audience,
+                "logo_path": logo_path, "design_params": {}, "is_zip": False,
+                "created_at": datetime.now().isoformat(),
+            }
+            sessions[sid_fr] = {**_base, "slides_plan": result_fr["slides_plan"], "lang": "fr",
+                                 "output_path": result_fr["output_path"],
+                                 "effective_colors": result_fr.get("effective_colors", {})}
+            sessions[sid_en] = {**_base, "slides_plan": result_en["slides_plan"], "lang": "en",
+                                 "output_path": result_en["output_path"],
+                                 "effective_colors": result_en.get("effective_colors", {})}
             sessions[session_id] = {
                 "slides_plan": result_fr["slides_plan"],
+                "slides_plan_en": result_en["slides_plan"],
                 "readme_content": readme_content,
                 "lang": "fr", "audience": audience,
                 "logo_path": logo_path, "design_params": {},
                 "output_path": zip_path, "is_zip": True,
+                "pptx_fr_path": result_fr["output_path"],
+                "pptx_en_path": result_en["output_path"],
                 "effective_colors": result_fr.get("effective_colors", {}),
+                "effective_colors_en": result_en.get("effective_colors", {}),
+                "session_id_fr": sid_fr,
+                "session_id_en": sid_en,
                 "created_at": datetime.now().isoformat(),
             }
         else:
@@ -2353,15 +2643,202 @@ def download(session_id: str):
     )
 
 
-@app.get("/export-pdf/{session_id}")
-def export_pdf(session_id: str):
+@app.post("/translate-email")
+async def translate_email(body: dict):
+    """Traduit le corps de l'email vers la langue cible."""
+    from agents.utils import groq_client, USE_LLM
+
+    text = body.get("text", "").strip()
+    target_lang = body.get("target_lang", "en")
+    if not text:
+        return JSONResponse({"error": "Texte vide"}, status_code=400)
+
+    target_name = "anglais" if target_lang == "en" else "français"
+
+    if not USE_LLM or groq_client is None:
+        return JSONResponse({"text": text})
+
+    try:
+        prompt = f"""Traduis cet email professionnel en {target_name}. Garde le même ton et la même structure. Réponds UNIQUEMENT avec le texte traduit, sans commentaire.
+
+{text}"""
+        resp = groq_client.chat.completions.create(
+            model="anthropic/claude-haiku-4-5",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=400, temperature=0.3
+        )
+        translated = resp.choices[0].message.content.strip()
+        return JSONResponse({"text": translated})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/email-draft/{session_id}")
+def email_draft(session_id: str):
+    """Génère un corps d'email professionnel via l'IA pour la présentation."""
     session = sessions.get(session_id)
     if not session:
         return JSONResponse({"error": "Session introuvable"}, status_code=404)
-    if session.get("is_zip"):
-        return JSONResponse({"error": "Export PDF non disponible pour le mode FR+EN"}, status_code=400)
 
-    pptx_path = session.get("output_path")
+    from agents.utils import groq_client, USE_LLM
+    slides_plan = session.get("slides_plan", {})
+    title = slides_plan.get("title", "Présentation")
+    slide_titles = [s.get("title", "") for s in slides_plan.get("slides", [])[:4]]
+    lang = session.get("lang", "fr")
+
+    if USE_LLM and groq_client:
+        try:
+            prompt = f"""Rédige un email professionnel pour envoyer une présentation PowerPoint.
+Titre de la présentation : {title}
+Slides principales : {', '.join(slide_titles)}
+Rédige TOUJOURS en français, quelle que soit la langue du README.
+L'email doit être court (5-7 lignes), professionnel, mentionner la présentation en pièce jointe.
+Termine par une formule de politesse. Réponds UNIQUEMENT avec le corps de l'email (pas de sujet, pas d'entête)."""
+            resp = groq_client.chat.completions.create(
+                model="anthropic/claude-haiku-4-5",
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=300, temperature=0.7
+            )
+            body = resp.choices[0].message.content.strip()
+            return JSONResponse({"body": body})
+        except Exception:
+            pass
+
+    # Fallback — toujours en français
+    body = f"""Bonjour,
+
+Veuillez trouver en pièce jointe la présentation PowerPoint intitulée « {title} ».
+
+Cette présentation a été générée automatiquement à partir de la documentation du projet et est prête à être utilisée.
+
+N'hésitez pas à me contacter pour toute question.
+
+Cordialement"""
+    return JSONResponse({"body": body})
+
+
+@app.post("/send-email/{session_id}")
+async def send_email(session_id: str, body: dict):
+    """Envoie la présentation PPTX par email via Gmail SMTP."""
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from email.mime.base import MIMEBase
+    from email import encoders
+
+    session = sessions.get(session_id)
+    if not session:
+        return JSONResponse({"error": "Session introuvable"}, status_code=404)
+
+    to_email = body.get("to_email", "").strip()
+    email_body = body.get("body", "").strip()
+    if not to_email:
+        return JSONResponse({"error": "Email destinataire requis"}, status_code=400)
+
+    gmail_user = os.getenv("GMAIL_USER", "")
+    gmail_pass = os.getenv("GMAIL_APP_PASSWORD", "")
+    if not gmail_user or not gmail_pass:
+        return JSONResponse({"error": "Configurez GMAIL_USER et GMAIL_APP_PASSWORD dans .env"}, status_code=500)
+
+    pptx_path = session.get("output_path", "")
+    if not pptx_path or not os.path.exists(pptx_path):
+        return JSONResponse({"error": "Fichier PPTX introuvable"}, status_code=404)
+
+    slides_plan = session.get("slides_plan", {})
+    title = slides_plan.get("title", "Présentation")
+
+    try:
+        msg = MIMEMultipart()
+        msg["From"] = gmail_user
+        msg["To"] = to_email
+        msg["Subject"] = f"Présentation : {title}"
+        msg.attach(MIMEText(email_body, "plain", "utf-8"))
+
+        with open(pptx_path, "rb") as f:
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(f.read())
+        encoders.encode_base64(part)
+        part.add_header("Content-Disposition", f'attachment; filename="presentation.pptx"')
+        msg.attach(part)
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(gmail_user, gmail_pass)
+            server.sendmail(gmail_user, to_email, msg.as_string())
+
+        return JSONResponse({"ok": True})
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.get("/export-pdf-zip/{session_id}")
+def export_pdf_zip(session_id: str):
+    """Génère un ZIP contenant les PDFs FR et EN pour les sessions bilingues."""
+    session = sessions.get(session_id)
+    if not session or not session.get("is_zip"):
+        return JSONResponse({"error": "Session ZIP introuvable"}, status_code=404)
+
+    pptx_paths = {
+        "FR": session.get("pptx_fr_path"),
+        "EN": session.get("pptx_en_path"),
+    }
+
+    def _to_pdf(pptx_path):
+        if not pptx_path or not os.path.exists(pptx_path):
+            return None
+        pdf_path = pptx_path.replace(".pptx", ".pdf")
+        try:
+            import comtypes.client
+            powerpoint = comtypes.client.CreateObject("Powerpoint.Application")
+            powerpoint.Visible = 1
+            deck = powerpoint.Presentations.Open(os.path.abspath(pptx_path), WithWindow=False)
+            deck.SaveAs(os.path.abspath(pdf_path), 32)
+            deck.Close()
+            powerpoint.Quit()
+            return pdf_path
+        except Exception:
+            pass
+        try:
+            import subprocess
+            candidates = ["soffice", "libreoffice",
+                r"C:\Program Files\LibreOffice\program\soffice.exe",
+                r"C:\Program Files (x86)\LibreOffice\program\soffice.exe"]
+            soffice = next((c for c in candidates if subprocess.call(
+                [c, "--version"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) == 0), None)
+            if soffice:
+                subprocess.run([soffice, "--headless", "--convert-to", "pdf",
+                    "--outdir", os.path.dirname(os.path.abspath(pptx_path)),
+                    os.path.abspath(pptx_path)], check=True, timeout=60)
+                return pdf_path if os.path.exists(pdf_path) else None
+        except Exception:
+            pass
+        return None
+
+    pdf_fr = _to_pdf(pptx_paths["FR"])
+    pdf_en = _to_pdf(pptx_paths["EN"])
+
+    if not pdf_fr and not pdf_en:
+        return JSONResponse({"error": "Export PDF non disponible. Installez LibreOffice."}, status_code=500)
+
+    zip_path = os.path.join("output", f"presentations_PDF_{session_id[:8]}.zip")
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        if pdf_fr and os.path.exists(pdf_fr): zf.write(pdf_fr, "presentation_FR.pdf")
+        if pdf_en and os.path.exists(pdf_en): zf.write(pdf_en, "presentation_EN.pdf")
+
+    return FileResponse(zip_path, media_type="application/zip", filename="presentations_FR_EN.pdf.zip")
+
+
+@app.get("/export-pdf/{session_id}")
+def export_pdf(session_id: str, lang: str = "fr"):
+    session = sessions.get(session_id)
+    if not session:
+        return JSONResponse({"error": "Session introuvable"}, status_code=404)
+
+    # Pour ZIP : utiliser le bon fichier PPTX selon la langue
+    if session.get("is_zip"):
+        pptx_path = session.get("pptx_en_path") if lang == "en" else session.get("pptx_fr_path")
+    else:
+        pptx_path = session.get("output_path")
+
     if not pptx_path or not os.path.exists(pptx_path):
         return JSONResponse({"error": "Fichier PPTX introuvable"}, status_code=404)
 
@@ -2465,17 +2942,26 @@ README:
 
 
 @app.get("/preview/{session_id}")
-def preview_slides(session_id: str):
+def preview_slides(session_id: str, lang: str = "fr"):
     session = sessions.get(session_id)
     if not session:
         return JSONResponse({"error": "Session introuvable"}, status_code=404)
     logo_path = session.get("logo_path")
     has_logo = bool(logo_path and os.path.exists(logo_path))
+    # Pour les sessions ZIP, retourner le bon plan selon la langue
+    if session.get("is_zip") and lang == "en":
+        slides_plan = session.get("slides_plan_en", session.get("slides_plan", {}))
+        colors = session.get("effective_colors_en", session.get("effective_colors", {}))
+    else:
+        slides_plan = session.get("slides_plan", {})
+        colors = session.get("effective_colors", {})
     return JSONResponse({
-        "slides_plan": session.get("slides_plan", {}),
+        "slides_plan": slides_plan,
         "is_zip": session.get("is_zip", False),
-        "colors": session.get("effective_colors", {}),
+        "colors": colors,
         "has_logo": has_logo,
+        "sub_session_fr": session.get("session_id_fr"),
+        "sub_session_en": session.get("session_id_en"),
     })
 
 
