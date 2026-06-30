@@ -110,24 +110,50 @@ def _content_slide(prs, title_text, bullets, primary=DARK_BLUE, accent=ACCENT,
              title_text, title_size, bold=title_bold, color=title_color,
              align=PP_ALIGN.LEFT, font_name=title_font)
 
-    txBox2 = slide.shapes.add_textbox(Inches(0.45), Inches(1.8), Inches(9.1), Inches(5.3))
-    tf2 = txBox2.text_frame
-    tf2.word_wrap = True
+    n = len(bullets)
+    # Content zone: y=1.68" to y=7.3" → 5.62" available
+    CONTENT_TOP = Inches(1.68)
+    CONTENT_H   = Inches(5.62)
+    CONTENT_X   = Inches(0.35)
+    CONTENT_W   = Inches(9.3)
+
+    # Dynamic font: bigger when few bullets, smaller when many
+    max_font = body_size + (5 if n <= 3 else 2 if n <= 5 else 0)
+    min_font = max(12, body_size - 5)
+    ideal_per_pt = CONTENT_H * 72 / max(n, 1)
+    font_pt = max(min_font, min(max_font, int(ideal_per_pt * 0.36)))
+
+    # Slot height per bullet (evenly distributed)
+    slot_h = CONTENT_H / max(n, 1)
 
     for i, bullet in enumerate(bullets):
-        p = tf2.paragraphs[0] if i == 0 else tf2.add_paragraph()
-        p.space_before = Pt(8)
+        # Vertical center of this slot
+        slot_cy = CONTENT_TOP + slot_h * i + slot_h / 2
+        # Text box height = font + some breathing room
+        tb_h = Inches(max(0.45, font_pt * 1.8 / 72))
+        tb_y = slot_cy - tb_h / 2
 
-        dot = p.add_run()
-        dot.text = bullet_char + "  "
-        dot.font.size = Pt(int(body_size * 0.65))
-        dot.font.color.rgb = accent
-        dot.font.name = body_font
-        dot.font.bold = True
+        # Dot indicator — small circle centered vertically on the slot
+        dot_r  = Inches(0.07)
+        dot_cx = CONTENT_X + Inches(0.18)
+        dot_cy = slot_cy - dot_r
+        dot_shape = slide.shapes.add_shape(1, dot_cx, dot_cy, dot_r * 2, dot_r * 2)
+        dot_shape.fill.solid()
+        dot_shape.fill.fore_color.rgb = accent
+        dot_shape.line.fill.background()
 
+        # Bullet text
+        tb = slide.shapes.add_textbox(
+            dot_cx + dot_r * 2 + Inches(0.12), tb_y,
+            CONTENT_W - Inches(0.5), tb_h
+        )
+        tf = tb.text_frame
+        tf.word_wrap = True
+        p = tf.paragraphs[0]
+        p.alignment = PP_ALIGN.LEFT
         run = p.add_run()
         run.text = bullet
-        run.font.size = Pt(body_size)
+        run.font.size = Pt(font_pt)
         run.font.bold = body_bold
         run.font.color.rgb = txt
         run.font.name = body_font
